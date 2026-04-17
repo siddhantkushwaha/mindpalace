@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mindpalace
+      POSTGRES_PASSWORD: mindpalace
+      POSTGRES_DB: mindpalace
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  chromadb:
+    image: chromadb/chroma:latest
+    volumes:
+      - chromadb_data:/chroma/chroma
+    expose:
+      - "8000"
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - VECTOR_STORE__HOST=chromadb
+      - VECTOR_STORE__PORT=8000
+      - DATABASE__URL=postgresql://mindpalace:mindpalace@postgres:5432/mindpalace
+    depends_on:
+      - chromadb
+      - postgres
+
+volumes:
+  chromadb_data:
+  postgres_data:
